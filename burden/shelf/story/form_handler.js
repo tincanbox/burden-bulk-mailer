@@ -193,7 +193,11 @@ module.exports = class extends Story {
 
       for(var q of queue.list){
         if(
-          q.email && (q.email == param.target_email)
+          (q.id && (q.id == param.target_id))
+          &&
+          (q.label && (q.label == param.target_label))
+          &&
+          (q.email && (q.email == param.target_email))
         ){
           matched = q;
           break;

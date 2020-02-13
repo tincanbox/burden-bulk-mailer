@@ -231,13 +231,13 @@
     });
 
     let per = 0;
-    let i = 0;
+    let completed = 0;
     let total = data.list.length;
 
     var upd_prg = (per, s, t) => {
       $('#progress-bar-status').html(''
         + '<section class="mt-1">'
-        + '<div>' + (Math.round(per * 10) / 10) + ' % = [ ' + (i - 1) + ' / ' + total + ' ]</div>'
+        + '<div>' + (Math.round(per * 10) / 10) + ' % = [ ' + (completed) + ' / ' + total + ' ]</div>'
         + (s ? ("<div>sending to " + s.label + " [" + s.email + "]...</div>") : "")
         + (t ? ("<div>" + t + "</div>") : "")
         + '</section>'
@@ -246,7 +246,6 @@
     };
 
     for(var s of data.list){
-      i++;
       if(aborted){
         break;
       }
@@ -255,17 +254,18 @@
         error: null
       };
       try{
-        console.log("sending", s);
         conf.timestamp = vm.active_timestamp;
-        upd_prg(per, s, "");
+        upd_prg(per, s);
         var r = await request_send_mail_each(s, conf);
         s.result.data = r;
+        completed++;
+        upd_prg(per, s);
         vm.sent.push(s);
       }catch(e){
         console.error(e);
         s.result.error = e;
       }
-      per = (i / total) * 100;
+      per = (completed / total) * 100;
       upd_prg(per, s);
     }
 
