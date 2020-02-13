@@ -84,7 +84,6 @@ module.exports = class extends Story {
       var row = [];
       var buf = await fsp.readFile(dr + path.sep + ent);
       var json = JSON.parse(buf.toString());
-      console.log("history", json);
       row.push(json.entry.id || json.request.target_id || "");
       row.push(json.entry.label || json.request.target_label || "");
       row.push(json.entry.email || json.request.target_email || "");
@@ -394,20 +393,24 @@ module.exports = class extends Story {
         for(var att of data_attachment){
           // Finding matched DESTINATION with query.
           var found = false;
-          var row;
-          // dummy entity
-          row = new DestinationEntry();
-          // just for front-end visibility.
-          row.label = att.entity;
+          var row = null;
           for(var dst of data_destlist){
-            row.bind(dst, data_destlist.__header);
-            var q = row.format(param.query_format);
+            var dm = new DestinationEntry();
+            dm.bind(dst, data_destlist.__header);
+            var q = dm.format(param.query_format);
             q = q.replace(/(　| )/g, "");
             if(att.entity == q){
-              row.bind(dst, data_destlist.__header);
-              row.append_attachment(att);
+              var mt = new DestinationEntry();
+              mt.bind(dst, data_destlist.__header);
+              mt.append_attachment(att);
+              row = null;
+              row = mt;
               break;
             }
+          }
+          if(!row){
+            row = new DestinationEntry();
+            row.label = att.entity;
           }
           row.append_attachment_mutual(data_attachment_mutual);
           sending.push(row);
@@ -455,21 +458,20 @@ module.exports = class extends Story {
     await fsx.mkdirp(this.path.content_mutual);
 
     // Error Check
-    if(!param.file.attachment){
-      throw new Error("Empty");
-    }
-    if([
-      "application/zip",
-      "application/octet-stream",
-      "application/x-zip-compressed",
-      "multipart/x-zip"
-    ].indexOf(param.file.attachment.type) < 0){
-      throw new Error("Only ZIP is supported for Attachment! => " + param.file.attachment.type);
-    }
     if(!param.file.destlist){
       throw new Error("destlist can not be empty.");
     }
-
+    if(param.file.attachment){
+      if([
+        "application/zip",
+        "application/octet-stream",
+        "application/x-zip-compressed",
+        "multipart/x-zip"
+      ].indexOf(param.file.attachment.type) < 0){
+        throw new Error("Not Supported Attachment => "
+          + param.file.attachment.type);
+      }
+    }
     if(param.file.attachment_mutual){
       if([
         "application/zip",
@@ -477,7 +479,8 @@ module.exports = class extends Story {
         "application/x-zip-compressed",
         "multipart/x-zip"
       ].indexOf(param.file.attachment_mutual.type) < 0){
-        throw new Error("Only ZIP is supported for Mutual Attachment! => " + param.file.attachment_mutual.type);
+        throw new Error("Not Supported Mutual Attachment => "
+          + param.file.attachment_mutual.type);
       }
     }
 
@@ -490,17 +493,23 @@ module.exports = class extends Story {
     }
 
     // Ready
-    let att = await this.unpack(param.file.attachment, this.path.content);
     let dst = await this.retrieve_dest_info(param.file.destlist);
 
-    let att_mut = null;
+    let att = [];
+    if(param.file.attachment){
+      att = await this.unpack(param.file.attachment, this.path.content);
+    }
+
+    let att_mut = [];
     if(param.file.attachment_mutual){
       att_mut = await this.unpack(param.file.attachment_mutual, this.path.content_mutual);
     }
 
     return {
       token: param.token,
-      dest: dst
+      dest: dst,
+      attachment: att,
+      attachment_mutual: att_mut
     };
   }
 

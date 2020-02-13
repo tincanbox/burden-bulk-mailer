@@ -234,6 +234,17 @@
     let i = 0;
     let total = data.list.length;
 
+    var upd_prg = (per, s, t) => {
+      $('#progress-bar-status').html(''
+        + '<section class="mt-1">'
+        + '<div>' + (Math.round(per * 10) / 10) + ' % = [ ' + (i - 1) + ' / ' + total + ' ]</div>'
+        + (s ? ("<div>sending to " + s.label + " [" + s.email + "]...</div>") : "")
+        + (t ? ("<div>" + t + "</div>") : "")
+        + '</section>'
+      );
+      $('#progress-send_mail').css('width', per + '%');
+    };
+
     for(var s of data.list){
       i++;
       if(aborted){
@@ -245,13 +256,8 @@
       };
       try{
         console.log("sending", s);
-        $('#progress-bar-status').html(''
-          + '<section class="mt-1">'
-          + '<div>' + parseInt(per) + ' % = [ ' + (i - 1) + ' / ' + total + ' ]</div>'
-          + "<div>sending to " + s.label + " [" + s.email + "]...</div>"
-          + '</section>'
-        );
         conf.timestamp = vm.active_timestamp;
+        upd_prg(per, s, "");
         var r = await request_send_mail_each(s, conf);
         s.result.data = r;
         vm.sent.push(s);
@@ -260,14 +266,12 @@
         s.result.error = e;
       }
       per = (i / total) * 100;
-      $('#progress-send_mail').css('width', per + '%');
+      upd_prg(per, s);
     }
 
     var dialog;
     var dcn = {
-      icon: 'warning',
-      text: '処理を中断しました。',
-      confirmButtonText: "DOWNLOAD",
+      confirmButtonText: "結果をダウンロード",
       allowOutsideClick: false,
       allowEscapeKey: false
     };
@@ -277,7 +281,7 @@
         text: '処理を中断しました。',
       }));
     }else{
-      $('#progress-send_mail').css('width', '100%');
+      upd_prg(100, false, "Closing...");
       await FM.async.sleep(1000);
       dialog = Swal.fire(Object.assign(dcn, {
         icon: 'info',
@@ -356,7 +360,7 @@
         + '<div class="d-flex align-items-center">'
         + '<div class="spinner-border ml-auto text-primary"'
           + ' role="status" aria-hidden="true" style=""></div>'
-        + '&nbsp;&nbsp;<span style="font-size: 1.4rem;font-family:Courier New;">Loading...</span>'
+        + '&nbsp;&nbsp;<span style="font-size: 1rem;">Loading...</span>'
         + '</div>'
       //'<h5><span class="spinner-border text-primary" role="status"></span>Loading...</h5>'
     });
@@ -393,9 +397,6 @@
     }
 
     let attachment = $('#file-attachment')[0].files[0];
-    if(!attachment){
-      throw new Error("添付用ZIPファイルを選択してください。");
-    }
 
     let f = new FormData();
     let p = {

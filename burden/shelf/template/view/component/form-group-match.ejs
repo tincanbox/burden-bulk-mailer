@@ -8,7 +8,7 @@
         <select class="form-control" id="form-input-query-type" name="query-type">
           <option value="" selected disabled>選択してください</option>
           <option value="destlist">宛先情報リストをもとに作成</option>
-          <option value="attachment">個別添付をもとに作成</option>
+          <option value="attachment" v-if="form.registered && form.registered.attachment.length">個別添付をもとに作成</option>
         </select>
         <p class="text-muted"><small>
         送信情報リスト作成のベースとなる方法を選択します。
@@ -18,7 +18,7 @@
       </div><!-- form-group -->
 
       <div class="form-group">
-        <label>検索クエリフォーマット</label>
+        <label>個別添付名のフォーマット</label>
         <input
           class="form-control"
           id="form-input-query-format"
