@@ -168,16 +168,16 @@
           name="upload"
           placeholder=""
           aria-describedby="uploading-addon"
-          v-on:change="update"
-          >
+          v-on:change="update">
         <label
           class="custom-file-label"
           for="upload"></label>
       </div>
     </div>
     <p class="text-muted"><small>
-    検索クエリにマッチするファイルが格納されているZIPファイルを選択します。
-    送信時に自動で判別＋解凍してZIP内容をすべて添付します
+    宛先情報リストとマッチするフォルダ名のフォーマットを指定します。
+    送信時に自動で内容を添付します。
+    ※ZIPファイルの場合は解凍せずにそのまま添付されます。
     </small></p>
   </div>
 </section>
