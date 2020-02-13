@@ -1,0 +1,217 @@
+<style>
+.input-group-prepend .input-group-text {
+  min-width: 120px;
+}
+</style>
+<template id="template--component-form">
+<section>
+
+  <ul class="nav nav-tabs" role="tablist">
+  <li class="nav-item">
+    <a
+      class="nav-link active"
+      href="#tab-content-a"
+      data-toggle="tab"
+      role="tab"
+      aria-selected="true">基本設定</a>
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link"
+      href="#tab-content-b"
+      data-toggle="tab"
+      role="tab"
+      aria-selected="false">リスト作成</a>
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link"
+      href="#tab-content-c"
+      data-toggle="tab"
+      role="tab"
+      aria-selected="false">メール内容</a>
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link"
+      href="#tab-content-d"
+      data-toggle="tab"
+      role="tab"
+      aria-selected="false">サーバー</a>
+  </li>
+  <li class="nav-item" v-if="form.sent.length">
+    <a
+      class="nav-link"
+      href="#tab-content-e"
+      data-toggle="tab"
+      role="tab"
+      aria-selected="false">ログ</a>
+  </li>
+
+  </ul>
+  <div class="tab-content">
+    <br>
+    <!-- tab -->
+    <div class="tab-pane fade show active"
+      id="tab-content-a"
+      role="tabpanel" aria-labelledby="home-tab">
+      <div class="row">
+        <div class="col-md-6">
+          <%- include("form-group-debug") %>
+        </div>
+        <div class="col-md-6">
+          <%- include('form-group-list') %>
+        </div>
+      </div>
+    </div>
+    <!-- tab -->
+    <div
+      class="tab-pane fade"
+      id="tab-content-b"
+      role="tabpanel"
+      aria-labelledby="profile-tab">
+      <div class="row">
+        <div class="col-md-6">
+          <%- include('form-group-match') %>
+        </div><!-- conf -->
+      </div>
+    </div>
+    <!-- tab -->
+    <div
+      class="tab-pane fade"
+      id="tab-content-c"
+      role="tabpanel"
+      aria-labelledby="contact-tab">
+        <div class="row">
+          <div class="col-md-6">
+            <%- include('form-group-mailcontent') %>
+          </div>
+          <div class="col-md-6">
+            <%- include('form-group-mailhelp') %>
+          </div>
+        </div>
+    </div>
+    <!-- tab -->
+    <div
+      class="tab-pane fade"
+      id="tab-content-d"
+      role="tabpanel"
+      aria-labelledby="contact-tab">
+        <div class="row">
+          <div class="col-md-6">
+            <%- include('form-group-sendinfo') %>
+          </div>
+        </div>
+    </div>
+    <!-- tab -->
+    <div
+      class="tab-pane fade"
+      id="tab-content-e"
+      role="tabpanel">
+        <div class="row">
+          <div class="col-md-12">
+            <%- include('form-group-log') %>
+          </div>
+        </div>
+    </div>
+
+  </div>
+
+</section>
+</template>
+
+<template id="template--component-form-dest-list">
+<section>
+  <div class="form-group">
+    <div class="input-group">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="uploading-addon">宛先情報リスト</span>
+      </div>
+      <div class="custom-file">
+        <input
+          id="file-dest-list"
+          type="file"
+          class="custom-file-input"
+          name="upload"
+          placeholder=""
+          aria-describedby="uploading-addon"
+          v-on:change="update"
+          placeholder="REQUIRED"
+          >
+        <label
+          class="custom-file-label"
+          for="upload"></label>
+      </div>
+    </div>
+    <p class="text-muted"><small>
+    宛先のリストを登録します。
+    <br>データの１〜３列目は id, label, email として扱われます。
+    <br>添付ファイルのマッチングにも使用されるので、アップロードの前に項目列の順番を確認してください。
+    </small></p>
+
+  </div><!-- form-group -->
+</section>
+</template>
+
+<template id="template--component-form-attachment">
+<section>
+  <div class="form-group">
+    <div class="input-group">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="uploading-addon">個別添付ファイル</span>
+      </div>
+      <div class="custom-file">
+        <input
+          id="file-attachment"
+          type="file"
+          class="custom-file-input"
+          name="upload"
+          placeholder=""
+          aria-describedby="uploading-addon"
+          v-on:change="update"
+          >
+        <label
+          class="custom-file-label"
+          for="upload"></label>
+      </div>
+    </div>
+    <p class="text-muted"><small>
+    検索クエリにマッチするファイルが格納されているZIPファイルを選択します。
+    送信時に自動で判別＋解凍してZIP内容をすべて添付します
+    </small></p>
+  </div>
+</section>
+</template>
+
+<template id="template--component-form-attachment-mutual">
+<section>
+  <div class="form-group">
+    <div class="input-group">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="uploading-addon">共通添付ファイル</span>
+      </div>
+      <div class="custom-file">
+        <input
+          id="file-attachment-mutual"
+          type="file"
+          class="custom-file-input"
+          name="attachment-mutual"
+          placeholder=""
+          aria-describedby="uploading-addon"
+          v-on:change="update"
+          >
+        <label
+          class="custom-file-label"
+          for="upload"></label>
+      </div>
+    </div>
+    <p class="text-muted"><small>
+    すべての送信先に共通して送信するファイルをZIP形式でアップロードします。
+    送信時に解凍され、内容が添付されます。
+    ※ZIPファイル自体を添付する場合は、送信したいZIPファイルを含んだZIPをアップロードしてください。
+    </small></p>
+  </div>
+</section>
+</template>
+
+<script src="/asset/script/component/form.js"></script>

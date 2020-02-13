@@ -1,0 +1,54 @@
+<style>
+.swal-auto {
+  width: auto !important;
+  min-width: 960px;
+  text-align: left;
+}
+</style>
+
+<script src="/asset/vendor/tabulator/dist/js/tabulator.js"></script>
+<link rel="stylesheet" href="/asset/vendor/tabulator/dist/css/tabulator.css">
+
+<pre>TOKEN: <%= token %></pre>
+<div class="row" id="main">
+
+  <div class="col-12">
+
+    <div id="form">
+      <div class="form-group">
+        <button
+          id="btn-sample"
+          class="btn btn-primary"
+          v-hidden
+          v-if="registered"
+          v-on:click="send_mail"
+          ><i class="fas fa-paper-plane"></i>&nbsp;Send</button>
+        <button
+          id="btn-sample"
+          class="btn btn-info"
+          v-on:click="register"
+          ><i class="fas fa-upload"></i>&nbsp;Register</button>
+        <button
+          id="btn-sample"
+          class="btn btn-info"
+          v-hidden
+          v-if="registered"
+          v-on:click="preview"
+          ><i class="fas fa-search"></i>&nbsp;Preview</button>
+      </div>
+
+      <component-form
+        v-bind:form="form"
+        ></component-form>
+
+    </div>
+
+
+  </div>
+
+</div>
+
+<%- include("component/form") %>
+<%- include("component/preview") %>
+
+<script src="/asset/script/view/index.js"></script>

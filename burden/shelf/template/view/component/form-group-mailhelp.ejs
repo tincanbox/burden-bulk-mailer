@@ -1,0 +1,49 @@
+<div class="card">
+  <div class="card-body">
+    <div class="card-text">
+      <h5>HELP</h5>
+
+      <div>
+        <b>使用可能な差し込み文字</b>
+      </div>
+      <div>
+        <code>%id%</code>, <code>%label%</code>, <code>%email%</code>
+        <div>
+        左から順に、アップロードした宛先情報リストの１〜３列目の値です。
+        </div>
+      </div>
+      <br>
+
+      <div>
+        <b>高度な設定</b>
+      </div>
+      <div>
+        EJSテンプレート <code>&lt;% %&gt;</code> の記法が使用可能です。
+        target 変数から送信時に使用されているメタ情報を参照します。
+      </div>
+      <br>
+
+      <code>&lt;&percnt;&equals; target.attr["住所"] %&gt;</code>
+      で宛先情報リストの『住所』列の情報にアクセスが可能です。
+      <var>target</var> の内容については以下の例を参照してください。
+
+<small><pre><code>
+{ "id":    "12345",
+  "label": "山田太郎",
+  "email": "yamada.taro@your.domain",
+  "attachment": [
+    { "entity":  "sample",
+      "type":    ".pdf",
+      "path":    "/server/path/of/attachment.file",
+      "hier":    ["SomeDirName"],
+      "content": [] }],
+  "attachment_mutual":[],
+  "attr": { "User ID":        "12345",
+            "氏名":           "山田太郎",
+            "メールアドレス": "yamada.taro@your.domain",
+            "住所":           "東京都渋谷区" } }
+</code></pre></small>
+
+    </div>
+  </div>
+</div><!-- card -->

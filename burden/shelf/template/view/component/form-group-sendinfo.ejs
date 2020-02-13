@@ -1,0 +1,26 @@
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">送信設定</h5>
+    <div class="card-text">
+      <div class="form-group">
+        <h5>SMTPサーバー</h5>
+        <div class="form-group">
+          <label>Host</label>
+          <input
+            class="form-control"
+            id="form-input-server_host"
+            name="server_host"
+            v-model="form.config.server.host">
+        </div>
+        <div class="form-group">
+          <label>Port</label>
+          <input
+            class="form-control"
+            id="form-input-server_port"
+            name="server_port"
+            value="587">
+        </div>
+      </div><!-- -->
+    </div>
+  </div>
+</div><!-- card -->
