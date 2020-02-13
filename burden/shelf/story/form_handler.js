@@ -458,7 +458,12 @@ module.exports = class extends Story {
     if(!param.file.attachment){
       throw new Error("Empty");
     }
-    if(param.file.attachment.type != "application/zip"){
+    if([
+      "application/zip",
+      "application/octet-stream",
+      "application/x-zip-compressed",
+      "multipart/x-zip"
+    ].indexOf(param.file.attachment.type) < 0){
       throw new Error("Only ZIP is supported for Attachment! => " + param.file.attachment.type);
     }
     if(!param.file.destlist){
@@ -466,7 +471,12 @@ module.exports = class extends Story {
     }
 
     if(param.file.attachment_mutual){
-      if(param.file.attachment_mutual.type != "application/zip"){
+      if([
+        "application/zip",
+        "application/octet-stream",
+        "application/x-zip-compressed",
+        "multipart/x-zip"
+      ].indexOf(param.file.attachment_mutual.type) < 0){
         throw new Error("Only ZIP is supported for Mutual Attachment! => " + param.file.attachment_mutual.type);
       }
     }
