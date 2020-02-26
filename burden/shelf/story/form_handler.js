@@ -512,8 +512,8 @@ module.exports = class extends Story {
     return {
       token: param.token,
       dest: dst,
-      attachment: att,
-      attachment_mutual: att_mut
+      //attachment: att,
+      //attachment_mutual: att_mut
     };
   }
 
