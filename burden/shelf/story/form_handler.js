@@ -489,7 +489,7 @@ module.exports = class extends Story {
     }
 
     let ft = this.detect_list_filetype(param.file.destlist);
-    if([ "csv", "xlsx" ].indexOf(ft) < 0){
+    if(!ft || [ "csv", "xlsx" ].indexOf(ft) < 0){
       throw new Error("Invalid file type: "
         + param.file.destlist.name
         + ft + "[" + param.file.destlist.type + "]"
@@ -552,14 +552,37 @@ module.exports = class extends Story {
   }
 
   detect_list_filetype(file){
-    switch(file.type){
-      case "text/csv":
-        return "csv";
-      case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-        return "xlsx";
-      default:
-        return false;
+    let ft = file.type;
+    let fn = file.name;
+    let fe = fn.split(".").pop();
+
+    let vali = [
+      {
+        ext: ["csv"],
+        mime: [
+          'text/csv',
+          'application/vnd.ms-excel',
+        ],
+      },
+      {
+        ext: ["xlsx"],
+        mime: [
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ]
+      }
+    ];
+
+    for(let vl of vali){
+      if(vl.mime.includes(ft) && vl.ext.includes(fe)){
+        return fe;
+      }
+      if(ft == 'application/octet-stream'){
+        if(vl.ext.includes(fe)){
+          return fe;
+        }
+      }
     }
+    return false;
   }
 
   async retrieve_excel_content(path, config){
