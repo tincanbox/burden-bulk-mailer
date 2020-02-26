@@ -15,8 +15,8 @@
     <tr v-for="s of form.sent">
       <td>{{ s.label }}</td>
       <td>{{ s.email }}</td>
-      <td>{{ s.result.data.status }}</td>
-      <td>{{ s.result.data.response }}</td>
+      <td>{{ s.result && s.result.data ? s.result.data.status : "" }}</td>
+      <td>{{ s.result && s.result.data ? s.result.data.response : "" }}</td>
       <td>{{ (s.result.data.error) || (s.result.error ? s.result.error : "") }}</td>
     </tr>
   </tbody>

@@ -258,13 +258,12 @@
         upd_prg(per, s);
         var r = await request_send_mail_each(s, conf);
         s.result.data = r;
-        completed++;
-        upd_prg(per, s);
-        vm.sent.push(s);
       }catch(e){
         console.error(e);
         s.result.error = e;
       }
+      completed++;
+      vm.sent.push(s);
       per = (completed / total) * 100;
       upd_prg(per, s);
     }

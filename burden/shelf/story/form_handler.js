@@ -145,51 +145,57 @@ module.exports = class extends Story {
     console.log("send mail --------------------------------");
     console.log("request =", param);
 
-    if(!param.timestamp){
-      throw new Error("Invalid Request");
-    }
+    var queue, mailer, trns, result, matched, entry, template_variable;
 
-    if(!param.server_host){
-      throw new Error("server_host is required.");
-    }
-
-    if(!param.sender_email){
-      throw new Error("sender_email is required.");
-    }
-
-    if(!param.target_email){
-      throw new Error("target_email can not be empty.");
-    }
-
-    var queue;
     try{
-      queue = await fsp.readFile(this.path.queue + path.sep + param.timestamp + '.json');
-      queue = JSON.parse(queue);
-    }catch(e){
-      throw new Error("queue not found.");
-    }
 
-    var mailer = this.core.mail.engine;
-    var trns = mailer.createTransport({
-      host: param.server_host,
-      port: param.server_port || 587
-    });
+      result = {
+        status: false,
+        entry: {},
+        request: param,
+        response: "",
+        error: null
+      };
 
-    var result = {
-      status: false,
-      entry: {},
-      request: param,
-      response: "",
-      error: null
-    };
+      if(!param.timestamp){
+        throw new Error("Invalid Request");
+      }
 
-    /* main proc */
-    var matched = false;
-    var entry;
-    var template_variable = {
-      target: {}
-    };
-    try{
+      if(!param.server_host){
+        throw new Error("server_host is required.");
+      }
+
+      if(!param.sender_email){
+        throw new Error("sender_email is required.");
+      }
+
+      if(!param.target_email){
+        throw new Error("target_email can not be empty.");
+      }
+
+      if(!/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(param.target_email)){
+        throw new Error("invalid_email_address");
+      }
+
+      try{
+        queue = await fsp.readFile(this.path.queue + path.sep + param.timestamp + '.json');
+        queue = JSON.parse(queue);
+      }catch(e){
+        throw new Error("queue not found.");
+      }
+
+      mailer = this.core.mail.engine;
+      trns = mailer.createTransport({
+        host: param.server_host,
+        port: param.server_port || 587
+      });
+
+      /* main proc */
+      matched = false;
+      entry;
+      template_variable = {
+        target: {}
+      };
 
       for(var q of queue.list){
         if(
@@ -219,8 +225,8 @@ module.exports = class extends Story {
 
       template_variable.target = matched;
 
-      console.log("param =", param);
-      console.log("entry =", entry);
+      //console.log("param =", param);
+      //console.log("entry =", entry);
 
       var destination_email_address = false;
       if(param.debug){
@@ -512,8 +518,8 @@ module.exports = class extends Story {
     return {
       token: param.token,
       dest: dst,
-      //attachment: att,
-      //attachment_mutual: att_mut
+      attachment: att,
+      attachment_mutual: att_mut
     };
   }
 
@@ -820,7 +826,6 @@ module.exports = class extends Story {
 
     return true;
   }
-
 
 }
 
