@@ -11,6 +11,8 @@ const papa = require('papaparse');
 
 const Story = disc('class/Story');
 
+archiver.registerFormat('zip-encryptable', require('archiver-zip-encryptable'));
+
 module.exports = class extends Story {
 
   constructor(core){
@@ -263,17 +265,7 @@ module.exports = class extends Story {
           //{ filename: 'text3.txt', path: '/path/to/file.txt' }
         ]
       };
-      // Mail Subject
-      var sbj = await this.core.template.compile(param.mail_subject, template_variable);
-      cnt.subject = entry.format(sbj);
-      // Mail Body
-      var bdy = await this.core.template.compile(param.mail_body, template_variable);
-      bdy = entry.format(bdy);
-      if(param.mail_body_type == "html"){
-        cnt.html = bdy;
-      }else{
-        cnt.text = bdy;
-      }
+
       // Attachment
       var atts = [];
       for(var a of entry.attachment){
@@ -288,7 +280,46 @@ module.exports = class extends Story {
           path: a.path
         });
       }
-      cnt.attachments = atts;
+
+      // PASSWORDed???
+      if(param.attachment_with_password){
+        var entl = [];
+        for(var f of atts){
+          entl.push([f.path, f.filename]);
+        }
+
+        var hrtm = process.hrtime()
+        var mctm = hrtm[0] + "-" + hrtm[1];
+        var psw = entry.attr.password = mctm;
+        var dsarc_fn = mctm + ".zip";
+        var dsarc_fp = this.path.content + path.sep + dsarc_fn;
+
+        await this.pack("zip-encryptable", {
+          zlib: { level: 9 },
+          password: psw
+        }, dsarc_fp, entl);
+
+        cnt.attachments = [{
+          filename: (param.attachment_locked_file_name || "locked") + ".zip",
+          path: dsarc_fp
+        }];
+
+      }else{
+        cnt.attachments = atts;
+      }
+
+      // Mail Subject
+      var sbj = await this.core.template.compile(param.mail_subject, template_variable);
+      cnt.subject = entry.format(sbj);
+      // Mail Body
+      var bdy = await this.core.template.compile(param.mail_body, template_variable);
+      bdy = entry.format(bdy);
+      if(param.mail_body_type == "html"){
+        cnt.html = bdy;
+      }else{
+        cnt.text = bdy;
+      }
+
       // Proc.
       var info = await trns.sendMail(cnt);
       result.response = info.response.split("\n").join(";");

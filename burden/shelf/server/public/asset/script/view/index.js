@@ -196,6 +196,7 @@
               var row = cell.getRow();
               var data = row.getData();
               var html = "";
+              console.log("data", data);
               for(var att of data.attachment){
                 html += ''
                   + '<div v-for="att of info.attachment">'
@@ -340,8 +341,8 @@
         complete: (r) => {
           var result = r.responseJSON || false;
           console.log("REQUEST() RESULT", result);
-          if(!result || result.error){
-            rej(new Error(result.error.detail || result.error));
+          if(!result || (result && result.error)){
+            rej(new Error( !result ? "EMPTY" : (result.error.detail || result.error) ));
           }else{
             res(result.data);
           }
@@ -465,8 +466,9 @@
       mail_subject: $('[name="mail_subject"]').val(),
       mail_body: $('[name="mail_body"]').val(),
       mail_body_type: $('[name="mail_body_type"]').val(),
-      config_require_personal_attachment:
-        $('[name="config_require_personal_attachment"]').is(':checked') || "",
+      config_require_personal_attachment: $('[name="config_require_personal_attachment"]').is(':checked') || "",
+      attachment_with_password: $('[name="attachment_with_password"]').is(':checked') || "",
+      attachment_locked_file_name: $('[name="attachment_locked_file_name"]').val()
     }
   }
 

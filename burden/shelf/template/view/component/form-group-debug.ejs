@@ -1,5 +1,7 @@
 <div class="card">
   <div class="card-body">
+
+    <h5 class="card-title">デバッグ</h5>
     <div class="card-text">
 
       <div class="form-group">
@@ -26,6 +28,13 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <div class="card-body">
+    <h5 class="card-title">添付ファイル送信方法</h5>
+
+    <div class="card-text">
       <div class="form-group">
         <div class="form-check">
           <input
@@ -47,5 +56,43 @@
       </div>
 
     </div>
+
+    <div class="card-text">
+      <label>パスワード自動設定</label>
+      <p class="mb-1"><small>
+        マッチした添付ファイルの送信方法を指定します。
+        通常はフォルダーのコンテンツをそれぞれ添付しますが、
+        パスワード指定の場合はパスワードを掛けたZIP圧縮ファイルとして送信します。
+        <br>
+        ※ メール本文などでは、%password% で埋め込み値にアクセスが可能です。
+        <br>
+        ※ 送信時に再圧縮を行うため、多量の送信の際は処理に時間が掛かります。
+        <br>
+      </small></p>
+
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <div class="input-group-text">
+            <input
+                id="attachment_with_password"
+                class="form-check-input ml-0"
+                name="attachment_with_password"
+                type="checkbox">
+            <label
+              class="form-check-label ml-3"
+              for="attachment_with_password">PASSWORD ZIP</label>
+          </div>
+        </div>
+        <input
+          type="text"
+          class="form-control"
+          name="attachment_locked_file_name"
+          placeholder="Name of Locked ZIP file."
+          value="locked">
+      </div>
+      <hr>
+
+    </div>
+
   </div>
 </div>
