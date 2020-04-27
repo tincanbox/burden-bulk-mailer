@@ -246,6 +246,10 @@
       $('#progress-send_mail').css('width', per + '%');
     };
 
+    // binding beforeunload
+    var confirmation = confirm_beforeunload("プロセスが進行中ですが、ウィンドウを閉じてもよろしいですか？");
+    $(window).on('beforeunload', confirmation);
+
     for(var s of data.list){
       if(aborted){
         break;
@@ -268,6 +272,8 @@
       per = (completed / total) * 100;
       upd_prg(per, s);
     }
+
+    $(window).off('beforeunload', confirmation);
 
     var dialog;
     var dcn = {
@@ -293,6 +299,14 @@
       download_last_result(vm.active_timestamp);
     });
 
+  }
+
+  function confirm_beforeunload(msg){
+    return (e) => {
+      e.preventDefault();
+      e.returnValue = msg;
+      return msg;
+    }
   }
 
   function download(filename, text) {
