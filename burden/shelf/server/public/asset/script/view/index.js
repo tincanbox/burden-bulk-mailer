@@ -47,6 +47,7 @@
             + '<div id="progress-bar-status" class="text-muted" style="font-family: monospace; font-size: 10px;"></div>',
             showConfirmButton: false,
             showCloseButton: false,
+            allowOutsideClick: false,
             showCancelButton: true,
             focusConfirm: false,
             cancelButtonText: 'Cancel',
