@@ -21,7 +21,7 @@ module.exports = class extends Story {
       "main"
     ]);
 
-    this.keep_limit = 40;
+    this.keep_limit = 5;
 
     this.path = {};
     this.path.storage = this.core.config.path.app + path.sep + 'storage';
