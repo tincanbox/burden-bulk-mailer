@@ -186,11 +186,17 @@ module.exports = class extends Story {
         throw new Error("queue not found.");
       }
 
-      mailer = this.core.mail.engine;
-      trns = mailer.createTransport({
+      let transport = {
+      };
+
+      transport = {
+	name: 'burden-bulk-mailer',
         host: param.server_host,
-        port: param.server_port || 587
-      });
+        port: param.server_port || 587,
+      }
+
+      mailer = this.core.mail.engine;
+      trns = mailer.createTransport(transport);
 
       /* main proc */
       matched = false;
