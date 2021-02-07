@@ -476,6 +476,8 @@
       query_type: $('#form-input-query-type').val(),
       server_host: $('[name="server_host"]').val(),
       server_port: $('[name="server_port"]').val(),
+      server_user: $('[name="server_user"]').val(),
+      server_password: $('[name="server_password"]').val(),
       sender_email: $('[name="sender_email"]').val(),
       sender_display_name: $('[name="sender_display_name"]').val(),
       mail_subject: $('[name="mail_subject"]').val(),

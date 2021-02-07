@@ -28,6 +28,7 @@ module.exports = class extends Story {
   }
 
   /*
+   * CHAPTER
    */
   async chapter_main(param){
 
@@ -67,6 +68,10 @@ module.exports = class extends Story {
     }
   }
 
+  /**
+   * ACTION
+   * @param {*} param 
+   */
   async action_generate_result_csv(param){
     if(!param.timestamp){
       throw new Error("invalid request");
@@ -112,7 +117,36 @@ module.exports = class extends Story {
     };
   }
 
-  async action_send_mail_prepare(param){
+  /**
+   * 
+   * @param {*} param 
+   */
+  validate_send_parameter(param){
+    if(!param.timestamp){
+      throw new Error("Invalid Request");
+    }
+
+    if(!param.server_host){
+      throw new Error("server_host is required.");
+    }
+
+    if(!param.sender_email){
+      throw new Error("sender_email is required.");
+    }
+
+    if(!param.target_email){
+      throw new Error("target_email can not be empty.");
+    }
+
+    if(!/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(param.target_email)){
+      throw new Error("invalid_email_address");
+    }
+  }
+
+  /**
+   * @param {*} param 
+   */
+  validate_presend_paramerter(param){
     if(!param.server_host){
       throw new Error("server_host is required.");
     }
@@ -128,6 +162,15 @@ module.exports = class extends Story {
     if(!param.mail_body){
       throw new Error("mail_body is required.");
     }
+  }
+
+  /**
+   * Action
+   * @param {*} param 
+   */
+  async action_send_mail_prepare(param){
+
+    this.validate_presend_paramerter(param);
 
     var res = await this.action_fetch_info(param);
     var timestamp = (new Date()).getTime();
@@ -143,196 +186,49 @@ module.exports = class extends Story {
     return res;
   }
 
+  /**
+   * Action
+   * @param {*} param 
+   */
   async action_send_mail(param){
-    console.log("send mail --------------------------------");
-    console.log("request =", param);
+    var queue, result;
 
-    var queue, mailer, trns, result, matched, entry, template_variable;
+    result = {
+      status: false,
+      entry: {},
+      request: param,
+      response: "",
+      error: null
+    };
 
     try{
 
-      result = {
-        status: false,
-        entry: {},
-        request: param,
-        response: "",
-        error: null
-      };
+      queue = await this.fetch_queue_file(param);
 
-      if(!param.timestamp){
-        throw new Error("Invalid Request");
-      }
-
-      if(!param.server_host){
-        throw new Error("server_host is required.");
-      }
-
-      if(!param.sender_email){
-        throw new Error("sender_email is required.");
-      }
-
-      if(!param.target_email){
-        throw new Error("target_email can not be empty.");
-      }
-
-      if(!/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(param.target_email)){
-        throw new Error("invalid_email_address");
-      }
-
-      try{
-        queue = await fsp.readFile(this.path.queue + path.sep + param.timestamp + '.json');
-        queue = JSON.parse(queue);
-      }catch(e){
-        throw new Error("queue not found.");
-      }
-
-      let transport = {
-      };
-
-      transport = {
-	name: 'burden-bulk-mailer',
+      let transport_option = {
+        name: 'burden-bulk-mailer',
         host: param.server_host,
         port: param.server_port || 587,
-      }
-
-      mailer = this.core.mail.engine;
-      trns = mailer.createTransport(transport);
-
-      /* main proc */
-      matched = false;
-      entry;
-      template_variable = {
-        target: {}
       };
 
-      for(var q of queue.list){
-        if(
-          (q.id && (q.id == param.target_id))
-          &&
-          (q.label && (q.label == param.target_label))
-          &&
-          (q.email && (q.email == param.target_email))
-        ){
-          matched = q;
-          break;
-        }
+      if (param.server_user && param.server_password) {
+          transport_option.auth = {
+            type: "login",
+            user: param.server_user,
+            pass: param.server_password
+          };
       }
 
-      if(!matched){
-        throw new Error("no entry found.");
-      }
+      let content = await this.build_sendmail_content_via_form(param, result, queue);
 
-      if(param.config_require_personal_attachment){
-        if(matched.attachment.length == 0){
-          throw new Error("no attachment with config_require_personal_attachment");
-        }
-      }
-
-      entry = new DestinationEntry(matched);
-      result.entry = entry;
-
-      template_variable.target = matched;
-
-      //console.log("param =", param);
-      //console.log("entry =", entry);
-
-      var destination_email_address = false;
-      if(param.debug){
-        destination_email_address = param.debug_taget_email || false;
-
-        if(param.mail_subject){
-          param.mail_subject = ''
-            + '[DEBUG MODE] '
-            + param.mail_subject
-        }
-
-        if(param.mail_body){
-          param.mail_body = ''
-            + "==== THIS IS THE DEBUG MODE MESSAGE ====\n"
-            + "Note: Actual message will be sent to `" + entry.email + "`\n"
-            + "\n"
-            + param.mail_body
-        }
-      }else{
-        //
-        destination_email_address = entry.email;
-      }
-
-      if(!destination_email_address){
-        throw new Error("Invalid destination email address.");
-      }
-
-      var cnt = {
-        from: (param.sender_display_name)
-        ? ('"' + param.sender_display_name + '" <' + param.sender_email + '>')
-        : (param.sender_email),
-        to: destination_email_address,
-        attachments: [
-          //{ filename: 'text3.txt', path: '/path/to/file.txt' }
-        ]
-      };
-
-      // Attachment
-      var atts = [];
-      for(var a of entry.attachment){
-        atts.push({
-          filename: a.entity + a.type,
-          path: a.path
-        });
-      }
-      for(var a of entry.attachment_mutual){
-        atts.push({
-          filename: a.entity + a.type,
-          path: a.path
-        });
-      }
-
-      // PASSWORDed???
-      if(param.attachment_with_password){
-        var entl = [];
-        for(var f of atts){
-          entl.push([f.path, f.filename]);
-        }
-
-        var hrtm = process.hrtime()
-        var mctm = hrtm[0] + "-" + hrtm[1];
-        var psw = entry.attr.password = mctm;
-        var dsarc_fn = mctm + ".zip";
-        var dsarc_fp = this.path.content + path.sep + dsarc_fn;
-
-        await this.pack("zip-encryptable", {
-          zlib: { level: 9 },
-          password: psw
-        }, dsarc_fp, entl);
-
-        cnt.attachments = [{
-          filename: (param.attachment_locked_file_name || "locked") + ".zip",
-          path: dsarc_fp
-        }];
-
-      }else{
-        cnt.attachments = atts;
-      }
-
-      // Mail Subject
-      var sbj = await this.core.template.compile(param.mail_subject, template_variable);
-      cnt.subject = entry.format(sbj);
-      // Mail Body
-      var bdy = await this.core.template.compile(param.mail_body, template_variable);
-      bdy = entry.format(bdy);
-      if(param.mail_body_type == "html"){
-        cnt.html = bdy;
-      }else{
-        cnt.text = bdy;
-      }
-
-      // Proc.
-      var info = await trns.sendMail(cnt);
+      // proc.
+      let info = await this.send_mail(transport_option, content);
       result.response = info.response.split("\n").join(";");
       if(result.response.match(" OK ")){
         result.status = true;
       }
     }catch(e){
+      console.error(e);
       result.error = e.message;
     }
 
@@ -352,6 +248,236 @@ module.exports = class extends Story {
     return result;
   }
 
+  /**
+   * 
+   * @param {*} transport_option 
+   * @param {*} content 
+   */
+  async send_mail(transport_option, content){
+    let mailer = this.core.mail.engine;
+    let transport = mailer.createTransport(transport_option);
+    return await transport.sendMail(content);
+  }
+
+  /**
+   * 
+   * @param {*} param 
+   * @param {*} queue 
+   */
+  async build_sendmail_content_via_form(param, result, queue){
+
+    this.validate_send_parameter(param);
+
+    /* main proc */
+    let content, matched, template_variable, entry;
+
+    matched = this.find_entry(param, queue);
+
+    template_variable = {
+      target: {}
+    };
+
+    entry = new DestinationEntry(matched);
+    result.entry = entry;
+    template_variable.target = matched;
+
+    let destination_email_address = this.decide_destination(param, entry);
+
+    if(!destination_email_address){
+      throw new Error("invalid destination email address.");
+    }
+
+    content = {
+      from: (param.sender_display_name)
+      ? ('"' + param.sender_display_name + '" <' + param.sender_email + '>')
+      : (param.sender_email),
+      to: destination_email_address,
+      attachments: [
+        //{ filename: 'text3.txt', path: '/path/to/file.txt' }
+      ]
+    };
+
+    // attachment
+    let atts = this.collect_attachments(entry);
+
+    // passworded???
+    if(param.attachment_with_password){
+      content.attachments = await this.build_zip_with_password(param, entry, atts);
+    }else{
+      content.attachments = atts;
+    }
+
+    // mail subject
+    content.subject = await this.build_subject(param, entry, template_variable);
+    // mail body
+    let body_text = await this.build_body(param, entry, template_variable);
+    if(param.mail_body_type == "html"){
+      content.html = body_text;
+    }else{
+      content.text = body_text;
+    }
+
+    return content;
+  }
+
+  /**
+   * 
+   * @param {*} param 
+   */
+  async fetch_queue_file(param){
+    try{
+      let queue = await fsp.readFile(this.path.queue + path.sep + param.timestamp + '.json');
+      return JSON.parse(queue);
+    }catch(e){
+      console.error(e);
+      throw new Error("queue not found.");
+    }
+  }
+
+  /**
+   * 
+   * @param {*} param 
+   * @param {*} queue 
+   * @throws error
+   */
+  find_entry(param, queue){
+    let matched = false;
+
+    for(var q of queue.list){
+      if(
+        (q.id && (q.id == param.target_id))
+        &&
+        (q.label && (q.label == param.target_label))
+        &&
+        (q.email && (q.email == param.target_email))
+      ){
+        matched = q;
+        break;
+      }
+    }
+
+    if(!matched){
+      throw new Error("no entry found.");
+    }
+
+    if(param.config_require_personal_attachment){
+      if(matched.attachment.length == 0){
+        throw new Error("no attachment with config_require_personal_attachment");
+      }
+    }
+
+    return matched;
+  }
+
+  /**
+   * 
+   * @param {*} param 
+   * @param {*} entry 
+   */
+  decide_destination(param, entry){
+    let destination_email_address = false;
+
+    if(param.debug){
+      destination_email_address = param.debug_taget_email || false;
+
+      if(param.mail_subject){
+        param.mail_subject = ''
+          + '[debug mode] '
+          + param.mail_subject
+      }
+
+      if(param.mail_body){
+        param.mail_body = ''
+          + "==== this is the debug mode message ====\n"
+          + "note: actual message will be sent to `" + entry.email + "`\n"
+          + "\n"
+          + param.mail_body
+      }
+    }else{
+      //
+      destination_email_address = entry.email;
+    }
+
+    return destination_email_address;
+  }
+
+  /**
+   * @param {*} entry 
+   */
+  collect_attachments(entry){
+    let atts = [];
+
+    for(var a of entry.attachment){
+      atts.push({
+        filename: a.entity + a.type,
+        path: a.path
+      });
+    }
+    for(var a of entry.attachment_mutual){
+      atts.push({
+        filename: a.entity + a.type,
+        path: a.path
+      });
+    }
+
+    return atts;
+  }
+
+  /**
+   * 
+   * @param {*} param 
+   * @param {*} entry 
+   * @param {*} template_variable 
+   */
+  async build_subject(param, entry, template_variable){
+      var sbj = await this.core.template.compile(param.mail_subject, template_variable);
+      return entry.format(sbj);
+  }
+
+  /**
+   * 
+   * @param {*} param 
+   * @param {*} entry 
+   * @param {*} template_variable 
+   */
+  async build_body(param, entry, template_variable){
+      var bdy = await this.core.template.compile(param.mail_body, template_variable);
+      return entry.format(bdy);
+  }
+
+  /**
+   * 
+   * @param {*} param 
+   * @param {*} entry 
+   * @param {*} atts 
+   */
+  async build_zip_with_password(param, entry, atts){
+    var entl = [];
+    for(var f of atts){
+      entl.push([f.path, f.filename]);
+    }
+
+    var hrtm = process.hrtime()
+    var mctm = hrtm[0] + "-" + hrtm[1];
+    var psw = entry.attr.password = mctm;
+    var dsarc_fn = mctm + ".zip";
+    var dsarc_fp = this.path.content + path.sep + dsarc_fn;
+
+    await this.pack("zip-encryptable", {
+      zlib: { level: 9 },
+      password: psw
+    }, dsarc_fp, entl);
+
+    return [{
+      filename: (param.attachment_locked_file_name || "locked") + ".zip",
+      path: dsarc_fp
+    }];
+  }
+
+  /**
+   * 
+   * @param {*} param 
+   */
   async action_fetch_info(param){
     if(!param.query_format){
       throw new Error("query_format is required.");
@@ -367,8 +493,6 @@ module.exports = class extends Story {
     let data_destlist = await this.retrieve_csv_content(stream.toString(), {
       as_object: true
     });
-
-    var drs;
 
     //
     let data_attachment = await this.collect_dir_info(this.path.content);
@@ -389,6 +513,11 @@ module.exports = class extends Story {
     return result;
   }
 
+  /**
+   * 
+   * @param {*} src 
+   * @param {*} hier 
+   */
   async collect_dir_info(src, hier){
     let ret = [];
     let drs = await fsp.readdir(src);
@@ -431,6 +560,13 @@ module.exports = class extends Story {
     return ret;
   }
 
+  /**
+   * 
+   * @param {*} param 
+   * @param {*} data_destlist 
+   * @param {*} data_attachment 
+   * @param {*} data_attachment_mutual 
+   */
   async collect_match(param, data_destlist, data_attachment, data_attachment_mutual){
     let sending = [];
     switch(param.query_type){
@@ -490,9 +626,10 @@ module.exports = class extends Story {
     return sending;
   }
 
-  async action_send(param){
-  }
-
+  /**
+   * 
+   * @param {*} param 
+   */
   async action_register_attachment(param){
     // Cleaning
     try{
@@ -560,6 +697,10 @@ module.exports = class extends Story {
     };
   }
 
+  /**
+   * 
+   * @param {*} file 
+   */
   async retrieve_dest_info(file){
     let ft = this.detect_list_filetype(file);
     let data;
@@ -568,8 +709,9 @@ module.exports = class extends Story {
     try{
       await fsp.unlink(destpath);
     }catch(e){
-      // ignore
+      console.error(e);
     }
+
     await fsp.copyFile(file.path, destpath);
     if(ft == "csv"){
       let bf = await fsp.readFile(destpath);
@@ -591,9 +733,14 @@ module.exports = class extends Story {
     }
     let str = await papa.unparse(data);
     await fsp.writeFile(this.path.generated_destlist_file, str);
+
     return data;
   }
 
+  /**
+   * 
+   * @param {*} file 
+   */
   detect_list_filetype(file){
     let ft = file.type;
     let fn = file.name;
@@ -628,6 +775,11 @@ module.exports = class extends Story {
     return false;
   }
 
+  /**
+   * 
+   * @param {*} path 
+   * @param {*} config 
+   */
   async retrieve_excel_content(path, config){
     var cnf = config || {xlsx: {}};
     var book = await this.read_xlsx(path, cnf.xlsx || {});
@@ -724,14 +876,24 @@ module.exports = class extends Story {
     return await proc;
   }
 
+  /**
+   * 
+   * @param {*} path 
+   * @param {*} config 
+   */
   async read_xlsx(path, config){
     var cnf = config || {};
     var book = await xlsx.readFile(path, cnf);
     return book;
   }
 
-
-  /*
+  /**
+   * 
+   * @param {*} type 
+   * @param {*} opt 
+   * @param {*} dest_archive_path 
+   * @param {*} entry_list 
+   * @param {*} callback 
    */
   async pack(type, opt, dest_archive_path, entry_list, callback){
     // create a file to stream archive data to.
@@ -787,7 +949,10 @@ module.exports = class extends Story {
     });
   }
 
-  /*
+  /**
+   * 
+   * @param {*} file 
+   * @param {*} dest_dir 
    */
   async unpack(file, dest_dir){
     let files = [];
@@ -832,6 +997,11 @@ module.exports = class extends Story {
     })
   }
 
+  /**
+   * 
+   * @param {*} dir 
+   * @param {*} limit 
+   */
   async rotate_directory(dir, limit){
     let ens = await fsp.readdir(dir);
     let dd = [];
@@ -941,5 +1111,3 @@ class DestinationEntry {
   }
 
 };
-
-
