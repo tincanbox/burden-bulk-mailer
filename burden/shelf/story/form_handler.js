@@ -15,13 +15,45 @@ archiver.registerFormat('zip-encryptable', require('archiver-zip-encryptable'));
 
 module.exports = class extends Story {
 
+  /**
+   * What is param????
+   * param is merged REQUEST data object.
+   * 
+   * param {
+   *   mode: 'send_mail',
+   *   token: '3288fc7f-6c99-4e68-95df-336560ef422b',
+   *   timestamp: 1619237651852,
+   *   target_id: 1510001898,
+   *   target_label: 'Hoge',
+   *   target_email: 'hoge@icloud.com',
+   *   debug: 'true',
+   *   debug_taget_email: '',
+   *   query_format: '%id%_%label%',
+   *   query_type: 'destlist',
+   *   server_host: 'smtp.gmail.com',
+   *   server_port: 587,
+   *   server_user: 'tontincanbox@gmail.com',
+   *   server_password: '',
+   *   sender_email: 'noreply@sample.co.jp',
+   *   sender_display_name: '',
+   *   mail_subject: '[debug mode] Test',
+   *   mail_body: '==== this is the debug mode message ====\n',
+   *   mail_body_type: 'text',
+   *   config_require_personal_attachment: 'true',
+   *   attachment_with_password: '',
+   *   attachment_locked_file_name: 'locked',
+   *   file: {}
+   * }
+   * @param {*} core 
+   */
+
   constructor(core){
     super(core);
     this.compose([
       "main"
     ]);
 
-    this.keep_limit = 5;
+    this.keep_limit = 4;
 
     this.path = {};
     this.path.storage = this.core.config.path.app + path.sep + 'storage';
@@ -238,7 +270,7 @@ module.exports = class extends Story {
         this.path.history
           + path.sep + param.timestamp
           + path.sep
-          + (param.target_label.replace(/(　| )/g, "").replace(path.sep, "_") + ".json"),
+          + (param.target_id + "_" + param.target_label.replace(/(　| )/g, "").replace(path.sep, "_") + ".json"),
         JSON.stringify(result)
       );
     }
