@@ -6,25 +6,23 @@ module.exports = class extends Story {
 
   constructor(core){
     super(core);
+
     this.compose([
       "main"
     ]);
+
+    this.config = {
+    };
+
   }
 
   /*
    */
   async chapter_main(param){
-
-    if(!param.mode){
-      this.abort("invalid mode");
-    }
-
     param.debug = true;
 
-    let mode = param.mode;
     try{
-      let action = "action_" + mode;
-      let result = await this[action](param);
+      let result = await this.action_send(param);
       return result;
     }catch(e){
       console.error(e);

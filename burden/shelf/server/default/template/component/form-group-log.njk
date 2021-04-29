@@ -1,0 +1,30 @@
+<div class="form-group">
+  <button class="btn btn-secondary" v-on:click="form.download_last_result">
+    <span>最終結果ダウンロード</span>
+  </button>
+</div>
+<table class="table" style="font-size: .75em;">
+  <thead>
+    <th>ID</th>
+    <th>Label</th>
+    <th>E-mail</th>
+    <th>Status</th>
+    <th>Response</th>
+    <th>(Error)</th>
+  </thead>
+  <tbody>
+    <tr v-for="s of form.sent">
+      <td>{{ s.id }}</td>
+      <td>{{ s.label }}</td>
+      <td>{{ s.email }}</td>
+      <td>{{ s.result && s.result.data ? s.result.data.status : "" }}</td>
+      <td>{{ s.result && s.result.data ? s.result.data.response : "" }}</td>
+      <td>{{ (s.result)
+        ? (s.result.data
+            ? (s.result.data.error ? s.result.data.error : "")
+            : (s.result.error ? s.result.error : "")
+          )
+        : "" }}</td>
+    </tr>
+  </tbody>
+</table>

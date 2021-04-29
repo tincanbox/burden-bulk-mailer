@@ -1,0 +1,36 @@
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">マッチング設定</h5>
+    <div class="card-text">
+
+      <div class="form-group">
+        <label class="label">送信情報リストの作成</label>
+        <select class="form-control" id="form-input-query-type" name="query-type">
+          <option value="" selected disabled>選択してください</option>
+          <option value="destlist">宛先情報リストをもとに作成</option>
+          <option value="attachment" v-if="form.registered && form.registered.attachment.length">個別添付をもとに作成</option>
+        </select>
+        <p class="text-muted"><small>
+        送信情報リスト作成のベースとなる方法を選択します。
+        <br>宛先情報リスト：宛先全員に共通のファイルを添付する場合など
+        <br>個別添付：ファイルがある人にのみメールを送信したい場合など
+        </small></p>
+      </div><!-- form-group -->
+
+      <div class="form-group">
+        <label>個別添付名のフォーマット</label>
+        <input
+          class="form-control"
+          id="form-input-query-format"
+          name="query-format"
+          value="%id%_%label%">
+        <p class="text-muted"><small>
+        アップロードした送信先リストの id, label, email 項目を使用します。
+        個別添付のファイル名と送信先リストの label 項目が不一致の場合に指定してください。
+        ※〇〇様 など敬称が含まれる場合など。
+        </small></p>
+      </div>
+
+    </div>
+  </div>
+</div><!-- card -->

@@ -1,0 +1,40 @@
+<template id="template--component-preview-content">
+<section>
+  <p>
+  全 {{ sending_count }} 件
+  </p>
+  <table class="table" style="min-width: 640px;">
+    <thead>
+      <tr>
+        <th>id</th>
+        <th>label</th>
+        <th>email</th>
+        <th>file</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="info of sending_preview">
+        <td>{{info.id or "ERROR"}}</td>
+        <td>{{info.label or "ERROR"}}</td>
+        <td>{{info.email or "ERROR"}}</td>
+        <td>
+          <div v-for="att of info.attachment">
+            <small><i class="fas fa-user-lock"></i>&nbsp;{{ att.entity }}</small></div>
+          <div v-for="att of info.attachment_mutual">
+            <small><i class="fas fa-retweet"></i>&nbsp;{{ att.entity }}</small></div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div>
+    <span
+      class="badge"
+      style="cursor: pointer;"
+      v-for="n in pages"
+      v-on:click="toggle_page"
+      v-bind:class="{'badge-primary': (n == page), 'badge-light': (n != page)}"
+      style="padding: .4em;">{{ n }}</span>
+  </div>
+</section>
+</template>
+<script src="/asset/script/component/preview.js"></script>

@@ -22,8 +22,8 @@ module.exports = {
      * your/pub/in/burden
      */
     expose: [
-      ["asset", "shelf/server/public/asset"],
-      ["bucket", "shelf/server/public/bucket"],
+      ["asset", "shelf/server/default/public/asset"],
+      ["bucket", "shelf/server/default/public/bucket"],
     ],
 
     session: {
@@ -40,7 +40,14 @@ module.exports = {
       let con = new handler(core, config);
       await con.init();
       return con;
-    }
+    },
+
+    block: {
+      type: [],
+      url: [
+      ]
+    },
+
   }
 
 };
